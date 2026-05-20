@@ -57,7 +57,7 @@ export default function Sidebar() {
 
       <section>
         <ul ref={ulRef} className="relative list-none p-0 m-0">
-          <figure ref={figureRef} className="absolute left-[11px]">
+          <figure ref={figureRef} className="absolute left-[11.5px]">
             <svg
               ref={svgRef}
               className="w-full h-full"
@@ -71,20 +71,25 @@ export default function Sidebar() {
             </svg>
           </figure>
           {items.map((item, index) => (
-            <li key={item.id} className="relative grid grid-cols-[24px_1fr] mb-4 last:mb-0 mt-4">
+            <li
+              key={item.id}
+              className="relative grid grid-cols-[24px_1fr] mb-4 last:mb-0 mt-4 cursor-pointer select-none group"
+            >
               <div className="flex items-center justify-center">
                 <div
                   id={`dot-${index}`}
                   className={cn(
                     'w-[12px] aspect-square rounded-full z-10 relative',
-                    index === 0 ? 'bg-[#D9D9D9]' : 'bg-[#FDFDFD] border-[2.5px] border-[#D9D9D9]'
+                    // index === 0 ? 'bg-[#D9D9D9]' : 'bg-[#FDFDFD] border-[2.5px] border-[#D9D9D9]'
+                    'bg-[#FDFDFD] border-[2.5px] border-[#D9D9D9]',
+                    'group-hover:bg-[#D9D9D9] transition-colors duration-150'
                   )}
                 ></div>
               </div>
 
-              <div className="relative overflow-hidden ml-1 rounded-2xl border border-[#EFEFEF] bg-white p-5 min-h-[110px]">
-                <h4 className="font-semibold text-lg mb-6 text-[#747171]">{item.title}</h4>
-                <div className="h-2.5 w-2/3 rounded-full bg-gray-200" />
+              <div className="relative overflow-hidden ml-1 rounded-[20px] border border-[#EFEFEF] bg-white p-5 min-h-[110px]">
+                <h4 className="font-medium text-lg mb-6 text-[#747171]">{item.title}</h4>
+                <div className="h-4 w-2/3 rounded-md bg-gray-200"></div>
 
                 <figure className="absolute -bottom-10 -right-10 w-28 aspect-square">
                   <svg
