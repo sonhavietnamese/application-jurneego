@@ -20,42 +20,90 @@ function roundedRectangle(ctx: CanvasRenderingContext2D, width: number, height: 
 }
 
 function drawFlower(ctx: CanvasRenderingContext2D, size: number) {
-  const points = 96
-  const radius = size / 2
+  const s = size / 134
+  const t = (v: number) => (v - 67) * s
 
   ctx.beginPath()
+  ctx.moveTo(t(51.97), t(6.18))
 
-  for (let index = 0; index <= points; index += 1) {
-    const angle = (index / points) * Math.PI * 2
-    const petal = 0.88 + Math.sin(angle * 8) * 0.12
-    const x = Math.cos(angle) * radius * petal
-    const y = Math.sin(angle) * radius * petal
+  // Top bump
+  ctx.bezierCurveTo(t(60.21), t(-2.06), t(73.57), t(-2.06), t(81.81), t(6.18))
+  ctx.lineTo(t(89.04), t(13.41))
+  ctx.lineTo(t(99.27), t(13.41))
 
-    if (index === 0) {
-      ctx.moveTo(x, y)
-    } else {
-      ctx.lineTo(x, y)
-    }
-  }
+  // Top-right corner
+  ctx.bezierCurveTo(t(110.92), t(13.41), t(120.37), t(22.86), t(120.37), t(34.51))
+  ctx.lineTo(t(120.37), t(44.74))
+  ctx.lineTo(t(127.6), t(51.97))
+
+  // Right bump
+  ctx.bezierCurveTo(t(135.84), t(60.21), t(135.84), t(73.57), t(127.6), t(81.81))
+  ctx.lineTo(t(120.37), t(89.04))
+  ctx.lineTo(t(120.37), t(99.27))
+
+  // Bottom-right corner
+  ctx.bezierCurveTo(t(120.37), t(110.92), t(110.92), t(120.37), t(99.27), t(120.37))
+  ctx.lineTo(t(89.04), t(120.37))
+  ctx.lineTo(t(81.81), t(127.6))
+
+  // Bottom bump
+  ctx.bezierCurveTo(t(73.57), t(135.84), t(60.21), t(135.84), t(51.97), t(127.6))
+  ctx.lineTo(t(44.74), t(120.37))
+  ctx.lineTo(t(34.51), t(120.37))
+
+  // Bottom-left corner
+  ctx.bezierCurveTo(t(22.86), t(120.37), t(13.41), t(110.92), t(13.41), t(99.27))
+  ctx.lineTo(t(13.41), t(89.04))
+  ctx.lineTo(t(6.18), t(81.81))
+
+  // Left bump
+  ctx.bezierCurveTo(t(-2.06), t(73.57), t(-2.06), t(60.21), t(6.18), t(51.97))
+  ctx.lineTo(t(13.41), t(44.74))
+  ctx.lineTo(t(13.41), t(34.51))
+
+  // Top-left corner
+  ctx.bezierCurveTo(t(13.41), t(22.86), t(22.86), t(13.41), t(34.51), t(13.41))
+  ctx.lineTo(t(44.74), t(13.41))
+  ctx.lineTo(t(51.97), t(6.18))
 
   ctx.closePath()
 }
 
-function drawTriangle(ctx: CanvasRenderingContext2D, size: number) {
+function drawTriangle(ctx: CanvasRenderingContext2D, size: number, cornerRadius: number = 18) {
   const radius = size / 1.9
 
-  ctx.beginPath()
-  for (let index = 0; index < 3; index += 1) {
+  // Calculate the 3 corner points
+  const points = Array.from({ length: 3 }, (_, index) => {
     const angle = -Math.PI / 2 + index * ((Math.PI * 2) / 3)
-    const x = Math.cos(angle) * radius
-    const y = Math.sin(angle) * radius
-
-    if (index === 0) {
-      ctx.moveTo(x, y)
-    } else {
-      ctx.lineTo(x, y)
+    return {
+      x: Math.cos(angle) * radius,
+      y: Math.sin(angle) * radius,
     }
+  })
+
+  ctx.beginPath()
+
+  for (let i = 0; i < 3; i++) {
+    const prev = points[(i + 2) % 3]
+    const current = points[i]
+    const next = points[(i + 1) % 3]
+
+    // arcTo needs a start point on the incoming edge, so we move
+    // slightly away from the corner toward the previous point
+    const startX = current.x + (prev.x - current.x) * 0.1
+    const startY = current.y + (prev.y - current.y) * 0.1
+
+    if (i === 0) {
+      ctx.moveTo(startX, startY)
+    } else {
+      ctx.lineTo(startX, startY)
+    }
+
+    // arcTo rounds the corner: it draws an arc tangent to both
+    // the incoming edge and the outgoing edge
+    ctx.arcTo(current.x, current.y, next.x, next.y, cornerRadius)
   }
+
   ctx.closePath()
 }
 
@@ -67,11 +115,11 @@ export function drawNodeShape(ctx: CanvasRenderingContext2D, node: CanvasNode, s
   }
 
   if (node.shape === 'square') {
-    roundedRectangle(ctx, size * 0.96, size * 0.96, 10)
+    roundedRectangle(ctx, size * 0.96, size * 0.96, 28)
   }
 
   if (node.shape === 'triangle') {
-    drawTriangle(ctx, size)
+    drawTriangle(ctx, size * 1.25)
   }
 
   if (node.shape === 'flower') {
