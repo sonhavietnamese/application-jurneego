@@ -1,5 +1,6 @@
 import Interactive from '@/components/interactive/interactive'
 import Sidebar from '@/components/sidebar/sidebar'
+import Notification from '@/components/notification'
 
 export default function Page() {
   return (
@@ -7,6 +8,8 @@ export default function Page() {
       <Sidebar />
 
       <Interactive />
+
+      {/* <Notification /> */}
     </main>
   )
 }
