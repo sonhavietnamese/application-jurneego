@@ -9,22 +9,33 @@ type ChatboxProps = {
 }
 
 export default function Chatbox({ input, isSending, onInputChange, onSend, onStop }: ChatboxProps) {
-  const inputRef = useRef<HTMLInputElement>(null)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => {
-    const inputElement = inputRef.current
+    const textareaElement = textareaRef.current
 
-    if (!inputElement) {
+    if (!textareaElement) {
       return
     }
 
     if (isSending) {
-      inputElement.blur()
+      textareaElement.blur()
       return
     }
 
-    inputElement.focus()
+    textareaElement.focus()
   }, [isSending])
+
+  useEffect(() => {
+    const textareaElement = textareaRef.current
+
+    if (!textareaElement) {
+      return
+    }
+
+    textareaElement.style.height = '0px'
+    textareaElement.style.height = `${Math.min(textareaElement.scrollHeight, 300)}px`
+  }, [input])
 
   return (
     <form
@@ -34,14 +45,22 @@ export default function Chatbox({ input, isSending, onInputChange, onSend, onSto
       }}
       className="w-full bg-[#FDFDFD] rounded-4xl border border-[#EFEFEF] p-5 font-sans z-50"
     >
-      <input
-        ref={inputRef}
-        type="text"
+      <textarea
+        ref={textareaRef}
         value={input}
         disabled={isSending}
         onChange={(event) => onInputChange(event.target.value)}
+        onKeyDown={(event) => {
+          if (event.key !== 'Enter' || event.shiftKey || event.nativeEvent.isComposing) {
+            return
+          }
+
+          event.preventDefault()
+          onSend()
+        }}
         placeholder="What do you think?"
-        className="outline-none w-full text-lg text-[#706E69] disabled:opacity-60"
+        rows={1}
+        className="max-h-[300px] min-h-8 w-full resize-none overflow-y-auto outline-none text-lg leading-snug text-[#706E69] disabled:opacity-60 hide-scrollbar"
       />
       <div className="mt-5 flex items-center justify-between">
         <button type="button" className="p-3 bg-[#FDFDFD] rounded-2xl border border-[#EFEFEF]">
