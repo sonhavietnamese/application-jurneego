@@ -124,7 +124,7 @@ export default function Sidebar() {
                 tabIndex={0}
                 aria-expanded={isActive}
                 whileHover="hover"
-                transition={{ duration: 0.3, ease: 'easeOut' }}
+                transition={{ duration: 0.2, ease: 'easeOut' }}
               >
                 <div className="flex items-center justify-center">
                   <div
@@ -140,7 +140,7 @@ export default function Sidebar() {
                 <motion.div
                   className="relative overflow-hidden ml-1 rounded-[20px] border border-[#EFEFEF] bg-white p-5 min-h-[110px]"
                   layout
-                  transition={{ duration: 0.3, ease: 'easeOut' }}
+                  transition={{ duration: 0.2, ease: 'easeOut' }}
                 >
                   <h4 className="font-medium text-lg text-[#747171]">{item.title}</h4>
                   <motion.span
@@ -151,9 +151,9 @@ export default function Sidebar() {
                     }
                     aria-hidden={!isActive}
                     transition={{
-                      height: { duration: 0.3, ease: 'easeOut' },
+                      height: { duration: 0.2, ease: 'easeOut' },
                       opacity: { duration: 0.2, ease: 'easeOut' },
-                      marginTop: { duration: 0.3, ease: 'easeOut' },
+                      marginTop: { duration: 0.2, ease: 'easeOut' },
                     }}
                   >
                     {item.description}

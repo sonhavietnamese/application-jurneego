@@ -1,9 +1,50 @@
-export default function Chatbox() {
+import { useEffect, useRef } from 'react'
+
+type ChatboxProps = {
+  input: string
+  isSending: boolean
+  onInputChange: (value: string) => void
+  onSend: () => void
+  onStop: () => void
+}
+
+export default function Chatbox({ input, isSending, onInputChange, onSend, onStop }: ChatboxProps) {
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    const inputElement = inputRef.current
+
+    if (!inputElement) {
+      return
+    }
+
+    if (isSending) {
+      inputElement.blur()
+      return
+    }
+
+    inputElement.focus()
+  }, [isSending])
+
   return (
-    <section className="w-full bg-[#FDFDFD] rounded-4xl border border-[#EFEFEF] p-5 font-sans z-50">
-      <input type="text" placeholder="What do you think?" className="outline-none w-full text-lg text-[#706E69]" />
+    <form
+      onSubmit={(event) => {
+        event.preventDefault()
+        onSend()
+      }}
+      className="w-full bg-[#FDFDFD] rounded-4xl border border-[#EFEFEF] p-5 font-sans z-50"
+    >
+      <input
+        ref={inputRef}
+        type="text"
+        value={input}
+        disabled={isSending}
+        onChange={(event) => onInputChange(event.target.value)}
+        placeholder="What do you think?"
+        className="outline-none w-full text-lg text-[#706E69] disabled:opacity-60"
+      />
       <div className="mt-5 flex items-center justify-between">
-        <button className="p-3 bg-[#FDFDFD] rounded-2xl border border-[#EFEFEF]">
+        <button type="button" className="p-3 bg-[#FDFDFD] rounded-2xl border border-[#EFEFEF]">
           <figure className="w-5 aspect-square">
             <svg
               className="w-full h-full"
@@ -20,27 +61,46 @@ export default function Chatbox() {
         </button>
 
         <div className="flex gap-2 items-center justify-center">
-          <button className="p-3 bg-[#005659] rounded-2xl border border-[#EFEFEF]">
+          <button
+            type={isSending ? 'button' : 'submit'}
+            onClick={isSending ? onStop : undefined}
+            disabled={!isSending && input.trim().length === 0}
+            className="p-3 bg-[#005659] rounded-2xl border border-[#EFEFEF] disabled:cursor-not-allowed disabled:opacity-50"
+            aria-label={isSending ? 'Stop response' : 'Send message'}
+          >
             <figure className="w-5 aspect-square">
-              <svg
-                className="w-full h-full"
-                width="18"
-                height="24"
-                viewBox="0 0 18 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M8.77669 2.17822V22.1782M1.5 9.58563L8.77669 2.17822L15.5741 9.58563"
-                  stroke="white"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                />
-              </svg>
+              {isSending ? (
+                <svg
+                  className="w-full h-full"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <rect x="5" y="5" width="10" height="10" rx="2" fill="white" />
+                </svg>
+              ) : (
+                <svg
+                  className="w-full h-full"
+                  width="18"
+                  height="24"
+                  viewBox="0 0 18 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M8.77669 2.17822V22.1782M1.5 9.58563L8.77669 2.17822L15.5741 9.58563"
+                    stroke="white"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              )}
             </figure>
           </button>
         </div>
       </div>
-    </section>
+    </form>
   )
 }
