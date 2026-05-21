@@ -10,7 +10,7 @@ const sfProRoundedBold = localFont({
 })
 
 const sfProRoundedSemiBold = localFont({
-  src: './fonts/SFProRounded-SemiBold.otf',
+  src: './fonts/SFProRounded-Semibold.otf',
   variable: '--font-sfpr-semi-bold',
   display: 'swap',
 })
