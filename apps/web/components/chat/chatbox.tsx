@@ -1,6 +1,6 @@
 export default function Chatbox() {
   return (
-    <section className="w-full bg-[#FDFDFD] rounded-3xl border border-[#EFEFEF] p-5 font-sans">
+    <section className="w-full bg-[#FDFDFD] rounded-4xl border border-[#EFEFEF] p-5 font-sans z-50">
       <input type="text" placeholder="What do you think?" className="outline-none w-full text-lg text-[#706E69]" />
       <div className="mt-5 flex items-center justify-between">
         <button className="p-3 bg-[#FDFDFD] rounded-2xl border border-[#EFEFEF]">

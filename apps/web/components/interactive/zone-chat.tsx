@@ -6,7 +6,7 @@ export default function ZoneChat() {
     <div className="py-5 col-span-3 pb-0 grid grid-rows-[min-content_1fr_auto] gap-4 h-full overflow-hidden">
       <div className="w-full h-10 flex items-center justify-between">
         <h2 className="font-semibold text-[26px]">Ethiopia Exploration!</h2>
-        <button className="p-3 bg-[#EFEFEF] rounded-2xl flex gap-3 items-center justify-center px-5">
+        <button className="p-3 bg-[#EFEFEF] rounded-2xl flex gap-3 items-center justify-center px-5 z-50 relative">
           <span className="text-base text-[#706E69]">Scientist Lens</span>
           <figure className="w-3 aspect-square">
             <svg

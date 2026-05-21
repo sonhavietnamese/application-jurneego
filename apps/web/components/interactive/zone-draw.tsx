@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useState } from 'react'
-
+import { cn } from '@/lib/utils'
 import { DrawModeButton } from './canvas-node-graph/draw-mode-button'
 import { useNodeCanvas } from './canvas-node-graph/use-node-canvas'
 
@@ -26,9 +26,10 @@ export default function ZoneDraw() {
         <canvas
           ref={canvasRef}
           aria-label="Floating canvas node graph"
-          className={`block h-full w-full touch-none ${
-            isDrawingMode ? 'cursor-crosshair' : isDraggingNode ? 'cursor-grabbing' : 'cursor-grab'
-          }`}
+          className={cn(
+            'block h-full w-full touch-none',
+            isDrawingMode ? 'cursor-crosshair' : isDraggingNode ? 'cursor-grabbing' : ''
+          )}
           {...pointerHandlers}
         />
       </section>
