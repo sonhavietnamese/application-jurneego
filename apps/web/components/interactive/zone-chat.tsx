@@ -1,74 +1,89 @@
 'use client'
 
+import { useSmoothScrollToBottom } from '@/hooks/use-smooth-scroll-to-bottom'
+import { getDisplayMessageText, getSpawnNodesFromMessage } from '@/lib/chat-node-payload'
+import { PRELOAD_MVP } from '@/lib/constants'
+import { useConnectionFeedbackStore } from '@/stores/connection-feedback-store'
+import { useNodeGraphStore } from '@/stores/node-graph-store'
 import { useChat } from '@ai-sdk/react'
+import type { UIMessage } from 'ai'
+import { AnimatePresence, motion } from 'motion/react'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
-import Chatbox from '../chat/chatbox'
-import { Shimmer } from '../shimmer'
 import AssistantAvatar from '../chat/assistant-avatar'
+import Chatbox from '../chat/chatbox'
 import { StreamingText } from '../chat/streaming-text'
-import { getMessageText } from '@/lib/utils'
+import { Shimmer } from '../shimmer'
 
-function useSmoothScrollToBottom(dependency: unknown) {
-  const scrollAreaRef = useRef<HTMLDivElement>(null)
-  const prefersReducedMotion = useReducedMotion()
-
-  useEffect(() => {
-    const scrollArea = scrollAreaRef.current
-
-    if (!scrollArea) {
-      return
-    }
-
-    if (prefersReducedMotion) {
-      scrollArea.scrollTop = scrollArea.scrollHeight
-      return
-    }
-
-    const scrollElement = scrollArea
-    const start = scrollElement.scrollTop
-    const end = scrollElement.scrollHeight - scrollElement.clientHeight
-    const distance = end - start
-    const duration = Math.min(520, Math.max(220, Math.abs(distance) * 0.35))
-    let animationFrame = 0
-    let startTime: number | null = null
-
-    function animateScroll(timestamp: number) {
-      if (startTime === null) {
-        startTime = timestamp
-      }
-
-      const progress = Math.min((timestamp - startTime) / duration, 1)
-      const easedProgress = 1 - Math.pow(1 - progress, 3)
-
-      scrollElement.scrollTop = start + distance * easedProgress
-
-      if (progress < 1) {
-        animationFrame = requestAnimationFrame(animateScroll)
-      }
-    }
-
-    animationFrame = requestAnimationFrame(animateScroll)
-
-    return () => cancelAnimationFrame(animationFrame)
-  }, [dependency, prefersReducedMotion])
-
-  return scrollAreaRef
-}
+const initialMessages = PRELOAD_MVP.initialConversation.map(
+  (message, index): UIMessage => ({
+    id: `initial-${index}`,
+    role: message.role,
+    parts: [{ type: 'text', text: message.content }],
+  })
+)
 
 export default function ZoneChat() {
   const [input, setInput] = useState('')
-  const { messages, sendMessage, status, stop, error } = useChat()
+  const { messages, setMessages, sendMessage, status, stop, error } = useChat({ messages: initialMessages })
+  const addNodes = useNodeGraphStore((state) => state.addNodes)
+  const guidanceMessages = useConnectionFeedbackStore((state) => state.guidanceMessages)
+  const processedNodeMessageIdsRef = useRef(new Set<string>())
+  const processedGuidanceMessageIdsRef = useRef(new Set<string>())
   const isSending = status === 'submitted' || status === 'streaming'
 
   const visibleMessages = useMemo(
-    () => messages.filter((message) => getMessageText(message).trim().length > 0),
+    () => messages.filter((message) => getDisplayMessageText(message).trim().length > 0),
     [messages]
   )
   const lastMessage = visibleMessages.at(-1)
   const lastMessageId = lastMessage?.id
-  const lastMessageText = lastMessage ? getMessageText(lastMessage) : ''
+  const lastMessageText = lastMessage ? getDisplayMessageText(lastMessage) : ''
   const scrollAreaRef = useSmoothScrollToBottom(`${lastMessageId}-${lastMessageText.length}-${status}`)
+
+  useEffect(() => {
+    if (isSending) {
+      return
+    }
+
+    messages.forEach((message) => {
+      if (processedNodeMessageIdsRef.current.has(message.id)) {
+        return
+      }
+
+      const spawnNodes = getSpawnNodesFromMessage(message)
+
+      if (spawnNodes.length > 0) {
+        addNodes(spawnNodes)
+      }
+
+      processedNodeMessageIdsRef.current.add(message.id)
+    })
+  }, [addNodes, isSending, messages])
+
+  useEffect(() => {
+    const newGuidanceMessages = guidanceMessages.filter(
+      (guidanceMessage) => !processedGuidanceMessageIdsRef.current.has(guidanceMessage.id)
+    )
+
+    if (newGuidanceMessages.length === 0) {
+      return
+    }
+
+    setMessages((currentMessages) => [
+      ...currentMessages,
+      ...newGuidanceMessages.map(
+        (guidanceMessage): UIMessage => ({
+          id: guidanceMessage.id,
+          role: 'assistant',
+          parts: [{ type: 'text', text: guidanceMessage.content }],
+        })
+      ),
+    ])
+
+    newGuidanceMessages.forEach((guidanceMessage) => {
+      processedGuidanceMessageIdsRef.current.add(guidanceMessage.id)
+    })
+  }, [guidanceMessages, setMessages])
 
   function handleSend() {
     const text = input.trim()
@@ -82,9 +97,9 @@ export default function ZoneChat() {
   }
 
   return (
-    <div className="py-5 col-span-3 pb-0 grid grid-rows-[min-content_1fr_auto] gap-4 h-full overflow-hidden">
+    <div className="p-5 col-span-3 pb-0 grid grid-rows-[min-content_1fr_auto] gap-4 h-full overflow-hidden">
       <div className="w-full h-10 flex items-center justify-between">
-        <h2 className="font-semibold text-[26px]">Ethiopia Exploration!</h2>
+        <h2 className="font-semibold text-[26px]">{PRELOAD_MVP.title}</h2>
         <button className="p-3 bg-[#EFEFEF] rounded-2xl flex gap-3 items-center justify-center px-5 z-50 relative">
           <span className="text-base text-[#706E69]">Scientist Lens</span>
           <figure className="w-3 aspect-square">
@@ -126,7 +141,7 @@ export default function ZoneChat() {
             ) : (
               <AnimatePresence initial={false}>
                 {visibleMessages.map((message) => {
-                  const text = getMessageText(message)
+                  const text = getDisplayMessageText(message)
                   const isUser = message.role === 'user'
                   const isStreamingAssistant =
                     message.role === 'assistant' && message.id === lastMessageId && status === 'streaming'

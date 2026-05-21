@@ -64,7 +64,7 @@ export default function Sidebar() {
   const lineHeight = Math.max(line.height, 1)
 
   return (
-    <aside className="w-[360px] h-full bg-[#FCFCFC] border border-[#EFEFEF] rounded-4xl p-5">
+    <aside className="w-[360px] h-full bg-[#FDFDFD] border border-[#EFEFEF] rounded-4xl p-5">
       <figure>
         <Image alt="JurneeGo" src="/jurneego-logo.png" width={100} height={100} />
       </figure>

@@ -1,6 +1,34 @@
+'use client'
+
+import { AnimatePresence, motion } from 'motion/react'
+import { useEffect } from 'react'
+import { useConnectionFeedbackStore } from '@/stores/connection-feedback-store'
+
 export default function Notification() {
+  const notification = useConnectionFeedbackStore((state) => state.notification)
+  const dismissNotification = useConnectionFeedbackStore((state) => state.dismissNotification)
+
+  useEffect(() => {
+    if (!notification) {
+      return
+    }
+
+    const timeout = window.setTimeout(dismissNotification, 5200)
+
+    return () => window.clearTimeout(timeout)
+  }, [dismissNotification, notification])
+
   return (
-    <aside className="absolute bottom-4 right-5 z-100 select-none">
+    <AnimatePresence>
+      {notification ? (
+        <motion.aside
+          key={notification.id}
+          animate={{ opacity: 1, y: 0 }}
+          className="absolute bottom-4 right-5 z-100 select-none"
+          exit={{ opacity: 0, y: 12 }}
+          initial={{ opacity: 0, y: 24 }}
+          transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+        >
       <figure className="w-[140px] aspect-square absolute bottom-2 right-2 z-20">
         <svg
           className="w-full h-full"
@@ -42,8 +70,8 @@ export default function Notification() {
 
       <div className="w-[400px] bg-[#FDFDFD] rounded-3xl border border-[#EFEFEF] p-5 overflow-hidden relative">
         <div className="text-lg flex flex-col">
-          <span className="text-[#2F2F2F] text-xl font-semibold ">Awesome!</span>
-          <span className="text-[#8A8884] text-sm">The connection very creative</span>
+          <span className="text-[#2F2F2F] text-xl font-semibold ">{notification.title}</span>
+          <span className="text-[#8A8884] text-sm">{notification.subtitle}</span>
           <div className="bg-[#FFD478] rounded-xl p-2 py-1.5 text-sm text-[#7E5F1E] font-semibold w-fit mt-2 select-none">
             +25%
           </div>
@@ -83,6 +111,8 @@ export default function Notification() {
           </figure>
         </>
       </div>
-    </aside>
+        </motion.aside>
+      ) : null}
+    </AnimatePresence>
   )
 }

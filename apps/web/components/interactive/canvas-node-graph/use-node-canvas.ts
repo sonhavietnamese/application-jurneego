@@ -1,17 +1,18 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { PointerEvent, RefObject } from 'react'
 
 import {
   CONNECTIONS,
   CONNECTION_STROKE,
   EDGE_DASH_SPEED,
-  INITIAL_NODES,
   NODE_APPEAR_MS,
   NODE_STAGGER_MS,
   USER_LINE_STROKE,
 } from './constants'
+import { useConnectionFeedbackStore } from '@/stores/connection-feedback-store'
+import { useNodeGraphStore } from '@/stores/node-graph-store'
 import { drawArrowHead, drawLinePath, drawNodeHalo, drawNodeShape, drawNodeText } from './drawing'
 import {
   clamp,
@@ -41,6 +42,7 @@ type UseNodeCanvasOptions = {
 export function useNodeCanvas({ canvasRef, wrapperRef, isDrawingMode }: UseNodeCanvasOptions) {
   const drawnLinesRef = useRef<DrawnLine[]>([])
   const nodePositionsRef = useRef<Record<string, Point> | null>(null)
+  const nodeIntroducedAtRef = useRef<Record<string, number>>({})
   const latestNodesRef = useRef<RenderedNode[]>([])
   const canvasSizeRef = useRef({ width: 0, height: 0 })
   const dragStateRef = useRef<DragState | null>(null)
@@ -50,11 +52,33 @@ export function useNodeCanvas({ canvasRef, wrapperRef, isDrawingMode }: UseNodeC
   const candidateEndNodeIdRef = useRef<string | null>(null)
   const [isDraggingNode, setIsDraggingNode] = useState(false)
 
-  const nodes = useMemo<CanvasNode[]>(() => INITIAL_NODES, [])
+  const nodes = useNodeGraphStore((state) => state.nodes)
+  const addGuidance = useConnectionFeedbackStore((state) => state.addGuidance)
+  const showNotification = useConnectionFeedbackStore((state) => state.showNotification)
 
   if (nodePositionsRef.current === null) {
     nodePositionsRef.current = Object.fromEntries(nodes.map((node) => [node.id, { x: node.x, y: node.y }]))
   }
+
+  useEffect(() => {
+    const positions = nodePositionsRef.current
+
+    if (!positions) {
+      return
+    }
+
+    const nodeIds = new Set(nodes.map((node) => node.id))
+
+    nodes.forEach((node) => {
+      positions[node.id] ??= { x: node.x, y: node.y }
+    })
+
+    Object.keys(positions).forEach((nodeId) => {
+      if (!nodeIds.has(nodeId)) {
+        delete positions[nodeId]
+      }
+    })
+  }, [nodes])
 
   const findNodeAtPoint = useCallback((point: Point) => {
     const renderedNodes = latestNodesRef.current
@@ -80,7 +104,14 @@ export function useNodeCanvas({ canvasRef, wrapperRef, isDrawingMode }: UseNodeC
   const getAnimatedNode = useCallback(
     (node: CanvasNode, width: number, height: number, now: number, startedAt: number, index: number) => {
       const position = nodePositionsRef.current?.[node.id] ?? { x: node.x, y: node.y }
-      const progress = clamp((now - startedAt - index * NODE_STAGGER_MS) / NODE_APPEAR_MS)
+      const introducedAtRef = nodeIntroducedAtRef.current
+      const introducedAt =
+        introducedAtRef[node.id] ??
+        (Object.keys(introducedAtRef).length < nodes.length ? startedAt + index * NODE_STAGGER_MS : now)
+
+      introducedAtRef[node.id] = introducedAt
+
+      const progress = clamp((now - introducedAt) / NODE_APPEAR_MS)
       const scale = 0.2 + easeOutBack(progress) * 0.8
       const floatY = Math.sin(now / 760 + node.phase) * 7
       const rotation = node.rotation + Math.sin(now / 1050 + node.phase) * 0.12
@@ -94,7 +125,7 @@ export function useNodeCanvas({ canvasRef, wrapperRef, isDrawingMode }: UseNodeC
         visible: progress > 0,
       }
     },
-    [],
+    [nodes.length],
   )
 
   const resetActiveGesture = useCallback(() => {
@@ -103,6 +134,51 @@ export function useNodeCanvas({ canvasRef, wrapperRef, isDrawingMode }: UseNodeC
     activeEndNodeIdRef.current = null
     candidateEndNodeIdRef.current = null
   }, [])
+
+  const reviewNodeConnection = useCallback(
+    async (from: CanvasNode, to: CanvasNode) => {
+      try {
+        const response = await fetch('/api/node-connection', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            from: { id: from.id, text: from.text },
+            to: { id: to.id, text: to.text },
+          }),
+        })
+
+        if (!response.ok) {
+          throw new Error(await response.text())
+        }
+
+        const review = (await response.json()) as {
+          related?: boolean
+          title?: string
+          subtitle?: string
+          guidance?: string
+        }
+
+        if (review.related) {
+          showNotification({
+            title: review.title?.trim() || 'Strong connection!',
+            subtitle: review.subtitle?.trim() || `${from.text} and ${to.text} connect well.`,
+          })
+          return
+        }
+
+        addGuidance(
+          review.guidance?.trim() ||
+            `That connection needs one more step. Try explaining how <hl>${from.text}</hl> directly affects <hl>${to.text}</hl>.`
+        )
+      } catch (error) {
+        console.error('Node connection review failed:', error)
+        addGuidance(
+          `I could not check that connection yet. Try asking: how does <hl>${from.text}</hl> explain or support <hl>${to.text}</hl>?`
+        )
+      }
+    },
+    [addGuidance, showNotification]
+  )
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -374,6 +450,10 @@ export function useNodeCanvas({ canvasRef, wrapperRef, isDrawingMode }: UseNodeC
             from: startNode,
             to: hitNode,
           })
+
+          if (startNode) {
+            void reviewNodeConnection(startNode, hitNode)
+          }
         }
 
         if (
@@ -386,7 +466,7 @@ export function useNodeCanvas({ canvasRef, wrapperRef, isDrawingMode }: UseNodeC
 
       resetActiveGesture()
     },
-    [canvasRef, findNodeAtPoint, isDrawingMode, resetActiveGesture],
+    [canvasRef, findNodeAtPoint, isDrawingMode, resetActiveGesture, reviewNodeConnection],
   )
 
   const handlePointerCancel = useCallback(

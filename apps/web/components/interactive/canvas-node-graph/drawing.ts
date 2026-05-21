@@ -141,7 +141,15 @@ export function drawNodeHalo(ctx: CanvasRenderingContext2D, node: RenderedNode, 
   ctx.restore()
 }
 
-export function drawNodeText(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, scale: number) {
+export function drawNodeText(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  x: number,
+  y: number,
+  scale: number,
+  maxWidth: number = 120, // max line width in unscaled pixels
+  lineHeight: number = 24
+) {
   ctx.save()
   ctx.translate(x, y)
   ctx.scale(scale, scale)
@@ -149,8 +157,40 @@ export function drawNodeText(ctx: CanvasRenderingContext2D, text: string, x: num
   ctx.font = '20px Arial, sans-serif'
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
-  ctx.fillText(text, 0, 0)
+
+  const lines = wrapText(ctx, text, maxWidth)
+  const totalHeight = lines.length * lineHeight
+  const startY = -totalHeight / 2 + lineHeight / 2 // vertically center the block
+
+  lines.forEach((line, index) => {
+    ctx.fillText(line, 0, startY + index * lineHeight)
+  })
+
   ctx.restore()
+}
+
+function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
+  const words = text.split(' ')
+  const lines: string[] = []
+  let currentLine = ''
+
+  for (const word of words) {
+    const testLine = currentLine ? `${currentLine} ${word}` : word
+    const { width } = ctx.measureText(testLine)
+
+    if (width > maxWidth && currentLine) {
+      lines.push(currentLine)
+      currentLine = word
+    } else {
+      currentLine = testLine
+    }
+  }
+
+  if (currentLine) {
+    lines.push(currentLine)
+  }
+
+  return lines
 }
 
 export function drawLinePath(ctx: CanvasRenderingContext2D, points: Point[]) {
