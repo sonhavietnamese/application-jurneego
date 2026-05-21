@@ -139,10 +139,13 @@ export default function ZoneChat() {
                 </div>
               </motion.li>
             ) : (
-              <AnimatePresence initial={false}>
+              <AnimatePresence>
                 {visibleMessages.map((message) => {
                   const text = getDisplayMessageText(message)
                   const isUser = message.role === 'user'
+                  const initialMessageIndex = message.id.startsWith('initial-')
+                    ? Number.parseInt(message.id.replace('initial-', ''), 10)
+                    : -1
                   const isStreamingAssistant =
                     message.role === 'assistant' && message.id === lastMessageId && status === 'streaming'
 
@@ -152,8 +155,12 @@ export default function ZoneChat() {
                       animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
                       className={isUser ? 'w-full flex justify-end' : 'w-full items-start inline-block'}
                       exit={{ opacity: 0, y: -5 }}
-                      initial={{ opacity: 0, y: isUser ? 5 : 8, filter: 'blur(4px)' }}
-                      transition={{ duration: 0.34, ease: [0.22, 1, 0.36, 1] }}
+                      initial={{ opacity: 0, y: 14, filter: 'blur(6px)' }}
+                      transition={{
+                        delay: initialMessageIndex >= 0 ? initialMessageIndex * 0.12 : 0,
+                        duration: initialMessageIndex >= 0 ? 0.48 : 0.34,
+                        ease: [0.22, 1, 0.36, 1],
+                      }}
                     >
                       {isUser ? (
                         <motion.div className="w-[80%] self-end flex justify-end">

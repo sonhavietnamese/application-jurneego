@@ -68,7 +68,7 @@ export default function Sidebar() {
 
   return (
     <aside className="w-[360px] h-full bg-[#FDFDFD] border border-[#EFEFEF] rounded-4xl p-5">
-      <figure>
+      <figure className="w-[100px] h-auto">
         <Image alt="JurneeGo" src="/jurneego-logo.png" width={100} height={100} />
       </figure>
 
