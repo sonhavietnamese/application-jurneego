@@ -13,22 +13,25 @@ export default function Sidebar() {
   const items = useMemo(
     () => [
       {
-        id: 1,
+        id: 0,
         title: 'The Perspective Scout',
         description:
           'You looked at the same question through two different lenses (e.g., Scientist and Historian). Great job seeing the bigger picture!',
+        progress: 72,
       },
       {
-        id: 2,
+        id: 1,
         title: 'The Bridge Builder',
         description:
           "You didn't just guess; you linked at least 3 factual nodes to your main question. Your argument is now rock solid!",
+        progress: 30,
       },
       {
-        id: 3,
+        id: 2,
         title: 'The Thoughtful Reflector',
         description:
           "You connected two ideas that seemed unrelated at first. You're finding connections that others missed!",
+        progress: 50,
       },
     ],
     []
@@ -158,26 +161,81 @@ export default function Sidebar() {
                   >
                     {item.description}
                   </motion.span>
-                  <div className="h-4 w-2/3 rounded-md bg-gray-200 mt-6 overflow-hidden">
-                    <div className="h-full bg-red-300 rounded-md " style={{ width: `${20}%` }}></div>
+                  <div className="h-3.5 w-2/3 rounded-md bg-gray-200 mt-6 overflow-hidden">
+                    <div className="h-full bg-gray-300 rounded-md " style={{ width: `${item.progress}%` }}></div>
                   </div>
 
                   <figure
                     className={cn(
                       'absolute -bottom-10 -right-10 w-28 aspect-square',
                       'group-hover:-rotate-12 rotate-0 transition-transform duration-150'
-                      // 'group-hover:animate-spin rotate-0 transition-transform duration-1000'
                     )}
                   >
                     <svg
-                      className="w-full h-full"
+                      className="w-full h-full "
                       width="132"
                       height="132"
                       viewBox="0 0 132 132"
                       fill="none"
                       xmlns="http://www.w3.org/2000/svg"
                     >
-                      <path
+                      {item.id === 0 && (
+                        <>
+                          <path
+                            d="M25.4614 146.569H121.173C140.076 146.569 152.371 126.676 143.917 109.768L96.0611 14.0566C86.6901 -4.68547 59.9441 -4.68547 50.5731 14.0566L2.71737 109.768C-5.73637 126.676 6.55826 146.569 25.4614 146.569Z"
+                            fill="#D9D9D9"
+                          />
+
+                          <motion.path
+                            d="M25.4614 146.569H121.173C140.076 146.569 152.371 126.676 143.917 109.768L96.0611 14.0566C86.6901 -4.68547 59.9441 -4.68547 50.5731 14.0566L2.71737 109.768C-5.73637 126.676 6.55826 146.569 25.4614 146.569Z"
+                            fill="#FFC122"
+                            variants={{
+                              rest: { opacity: 0 },
+                              hover: { opacity: 1 },
+                            }}
+                            transition={{ duration: 0.25, ease: 'easeOut' }}
+                          />
+                        </>
+                      )}
+
+                      {item.id === 1 && (
+                        <>
+                          <path
+                            d="M38.2504 9.7239C44.5327 -0.0883654 57.5803 -2.95031 67.3926 3.33187L76.0078 8.84757L85.9997 6.65594C97.3802 4.15994 108.629 11.3626 111.125 22.7431L113.317 32.7341L121.932 38.2507C131.745 44.5329 134.606 57.5796 128.324 67.392L122.808 76.0071L125 86C127.496 97.3804 120.294 108.629 108.914 111.126L98.9221 113.317L93.4064 121.932C87.1242 131.745 74.0766 134.607 64.2642 128.324L55.6491 122.809L45.6571 125C34.2766 127.497 23.027 120.295 20.5306 108.914L18.3388 98.9215L9.7236 93.4057C-0.0884267 87.1235 -2.95019 74.0768 3.33177 64.2645L8.84747 55.6494L6.65584 45.6574C4.15963 34.2768 11.3622 23.0269 22.7428 20.5307L32.7347 18.3391L38.2504 9.7239Z"
+                            fill="#D9D9D9"
+                          />
+
+                          <motion.path
+                            d="M38.2504 9.7239C44.5327 -0.0883654 57.5803 -2.95031 67.3926 3.33187L76.0078 8.84757L85.9997 6.65594C97.3802 4.15994 108.629 11.3626 111.125 22.7431L113.317 32.7341L121.932 38.2507C131.745 44.5329 134.606 57.5796 128.324 67.392L122.808 76.0071L125 86C127.496 97.3804 120.294 108.629 108.914 111.126L98.9221 113.317L93.4064 121.932C87.1242 131.745 74.0766 134.607 64.2642 128.324L55.6491 122.809L45.6571 125C34.2766 127.497 23.027 120.295 20.5306 108.914L18.3388 98.9215L9.7236 93.4057C-0.0884267 87.1235 -2.95019 74.0768 3.33177 64.2645L8.84747 55.6494L6.65584 45.6574C4.15963 34.2768 11.3622 23.0269 22.7428 20.5307L32.7347 18.3391L38.2504 9.7239Z"
+                            fill="#0A6B6F"
+                            variants={{
+                              rest: { opacity: 0 },
+                              hover: { opacity: 1 },
+                            }}
+                            transition={{ duration: 0.25, ease: 'easeOut' }}
+                          />
+                        </>
+                      )}
+
+                      {item.id === 2 && (
+                        <>
+                          <path
+                            d="M19.6359 21.7026C23.1173 6.63558 38.1538 -2.7564 53.2208 0.725007L135.064 19.6359C150.131 23.1173 159.523 38.1538 156.042 53.2208L137.131 135.064C133.65 150.131 118.613 159.523 103.546 156.042L21.7026 137.131C6.63558 133.65 -2.7564 118.613 0.725007 103.546L19.6359 21.7026Z"
+                            fill="#D9D9D9"
+                          />
+
+                          <motion.path
+                            d="M19.6359 21.7026C23.1173 6.63558 38.1538 -2.7564 53.2208 0.725007L135.064 19.6359C150.131 23.1173 159.523 38.1538 156.042 53.2208L137.131 135.064C133.65 150.131 118.613 159.523 103.546 156.042L21.7026 137.131C6.63558 133.65 -2.7564 118.613 0.725007 103.546L19.6359 21.7026Z"
+                            fill="#5E77DB"
+                            variants={{
+                              rest: { opacity: 0 },
+                              hover: { opacity: 1 },
+                            }}
+                            transition={{ duration: 0.25, ease: 'easeOut' }}
+                          />
+                        </>
+                      )}
+                      {/* <path
                         d="M38.2504 9.7239C44.5327 -0.0883654 57.5803 -2.95031 67.3926 3.33187L76.0078 8.84757L85.9997 6.65594C97.3802 4.15994 108.629 11.3626 111.125 22.7431L113.317 32.7341L121.932 38.2507C131.745 44.5329 134.606 57.5796 128.324 67.392L122.808 76.0071L125 86C127.496 97.3804 120.294 108.629 108.914 111.126L98.9221 113.317L93.4064 121.932C87.1242 131.745 74.0766 134.607 64.2642 128.324L55.6491 122.809L45.6571 125C34.2766 127.497 23.027 120.295 20.5306 108.914L18.3388 98.9215L9.7236 93.4057C-0.0884267 87.1235 -2.95019 74.0768 3.33177 64.2645L8.84747 55.6494L6.65584 45.6574C4.15963 34.2768 11.3622 23.0269 22.7428 20.5307L32.7347 18.3391L38.2504 9.7239Z"
                         fill="#D9D9D9"
                       />
@@ -202,7 +260,7 @@ export default function Sidebar() {
                           <stop stop-color="#267A7D" />
                           <stop offset="1" stop-color="#00B9BF" />
                         </linearGradient>
-                      </defs>
+                      </defs> */}
                     </svg>
                   </figure>
                 </motion.div>
